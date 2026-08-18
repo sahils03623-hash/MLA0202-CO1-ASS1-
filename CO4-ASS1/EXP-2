@@ -1,1 +1,105 @@
+import numpy as np
 
+# Hidden states
+states = ["Sunny", "Cloudy", "Rainy"]
+
+# Observations
+observations = ["Dry", "Humid", "Wet"]
+
+# Initial probabilities
+initial_prob = {
+    "Sunny": 0.5,
+    "Cloudy": 0.3,
+    "Rainy": 0.2
+}
+
+# Transition probabilities
+transition_prob = {
+    "Sunny": {
+        "Sunny": 0.6,
+        "Cloudy": 0.3,
+        "Rainy": 0.1
+    },
+    "Cloudy": {
+        "Sunny": 0.3,
+        "Cloudy": 0.4,
+        "Rainy": 0.3
+    },
+    "Rainy": {
+        "Sunny": 0.2,
+        "Cloudy": 0.3,
+        "Rainy": 0.5
+    }
+}
+
+# Emission probabilities
+emission_prob = {
+    "Sunny": {
+        "Dry": 0.8,
+        "Humid": 0.15,
+        "Wet": 0.05
+    },
+    "Cloudy": {
+        "Dry": 0.2,
+        "Humid": 0.5,
+        "Wet": 0.3
+    },
+    "Rainy": {
+        "Dry": 0.05,
+        "Humid": 0.15,
+        "Wet": 0.8
+    }
+}
+
+# Observation sequence
+observed_sequence = ["Dry", "Humid", "Wet", "Wet"]
+
+# Viterbi algorithm
+V = [{}]
+path = {}
+
+# Initialization
+for state in states:
+    V[0][state] = (
+        initial_prob[state] *
+        emission_prob[state][observed_sequence[0]]
+    )
+    path[state] = [state]
+
+# Recursion
+for t in range(1, len(observed_sequence)):
+    V.append({})
+    new_path = {}
+
+    for current_state in states:
+
+        probability, previous_state = max(
+            (
+                V[t - 1][previous_state]
+                * transition_prob[previous_state][current_state]
+                * emission_prob[current_state][observed_sequence[t]],
+                previous_state
+            )
+            for previous_state in states
+        )
+
+        V[t][current_state] = probability
+        new_path[current_state] = path[previous_state] + [current_state]
+
+    path = new_path
+
+# Find best final state
+probability, final_state = max(
+    (V[-1][state], state)
+    for state in states
+)
+
+best_sequence = path[final_state]
+
+print("Observed sequence:")
+print(observed_sequence)
+
+print("\nPredicted hidden weather states:")
+print(best_sequence)
+
+print("\nProbability:", probability)
