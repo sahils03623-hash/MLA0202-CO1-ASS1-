@@ -1,1 +1,111 @@
+import pandas as pd
 
+from pgmpy.estimators import HillClimbSearch
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.inference import VariableElimination
+
+
+# Create historical customer data
+
+data = {
+    "Age": [
+        "Young", "Young", "Young", "Middle",
+        "Middle", "Middle", "Old", "Old",
+        "Old", "Young", "Middle", "Old"
+    ],
+
+    "Income": [
+        "Low", "Medium", "High", "Low",
+        "Medium", "High", "Low", "Medium",
+        "High", "High", "Medium", "High"
+    ],
+
+    "Vehicle": [
+        "Car", "Bike", "Car", "Car",
+        "Bike", "Car", "Bike", "Car",
+        "Car", "Bike", "Car", "Bike"
+    ],
+
+    "Claim": [
+        "Yes", "No", "Yes", "No",
+        "Yes", "Yes", "No", "Yes",
+        "Yes", "No", "Yes", "No"
+    ]
+}
+
+df = pd.DataFrame(data)
+
+print("Historical Data:")
+print(df)
+
+
+# Learn Bayesian Network structure
+
+hc = HillClimbSearch(df)
+
+learned_structure = hc.estimate(
+    scoring_method="bic-d",
+    show_progress=False
+)
+
+print("\nLearned Network Structure:")
+print(list(learned_structure.edges()))
+
+
+# Create Bayesian Network
+# Include all required variables
+
+edges = list(learned_structure.edges())
+
+required_nodes = ["Age", "Income", "Vehicle", "Claim"]
+
+model = DiscreteBayesianNetwork()
+
+model.add_nodes_from(required_nodes)
+model.add_edges_from(edges)
+
+
+# Add simple relationships for variables not selected
+# by structure learning
+
+if not model.has_edge("Age", "Claim"):
+    model.add_edge("Age", "Claim")
+
+if not model.has_edge("Income", "Claim"):
+    model.add_edge("Income", "Claim")
+
+
+print("\nFinal Network Structure:")
+print(list(model.edges()))
+
+
+# Learn CPDs
+
+model.fit(df)
+
+print("\nLearned CPDs:")
+
+for cpd in model.get_cpds():
+    print(cpd)
+
+
+# Perform inference
+
+inference = VariableElimination(model)
+
+new_customer = {
+    "Age": "Young",
+    "Income": "High",
+    "Vehicle": "Car"
+}
+
+result = inference.query(
+    variables=["Claim"],
+    evidence=new_customer
+)
+
+print("\nNew Customer:")
+print(new_customer)
+
+print("\nProbability of Insurance Claim:")
+print(result)
