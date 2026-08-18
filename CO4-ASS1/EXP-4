@@ -1,1 +1,112 @@
+import sklearn_crfsuite
 
+
+# Function to create word features
+def word_features(sentence, index):
+
+    word = sentence[index]
+
+    features = {
+        'word.lower()': word.lower(),
+        'word.isupper()': word.isupper(),
+        'word.istitle()': word.istitle(),
+        'word.isdigit()': word.isdigit(),
+        'word.length': len(word),
+    }
+
+    # Previous word
+    if index > 0:
+        previous_word = sentence[index - 1]
+
+        features.update({
+            'prev_word.lower()': previous_word.lower(),
+            'prev_word.istitle()': previous_word.istitle()
+        })
+    else:
+        features['BOS'] = True
+
+    # Next word
+    if index < len(sentence) - 1:
+        next_word = sentence[index + 1]
+
+        features.update({
+            'next_word.lower()': next_word.lower(),
+            'next_word.istitle()': next_word.istitle()
+        })
+    else:
+        features['EOS'] = True
+
+    return features
+
+
+# Convert sentence into feature vectors
+def sentence_features(sentence):
+    return [
+        word_features(sentence, i)
+        for i in range(len(sentence))
+    ]
+
+
+# Training sentences
+training_sentences = [
+    ["John", "ordered", "Laptop", "12345"],
+    ["Mary", "bought", "Phone", "56789"],
+    ["Rahul", "ordered", "Headphones", "98765"],
+    ["Anita", "purchased", "Tablet", "45678"]
+]
+
+# Corresponding labels
+# PER = Person
+# PROD = Product
+# ORDER = Order ID
+# O = Other
+
+training_labels = [
+    ["PER", "O", "PROD", "ORDER"],
+    ["PER", "O", "PROD", "ORDER"],
+    ["PER", "O", "PROD", "ORDER"],
+    ["PER", "O", "PROD", "ORDER"]
+]
+
+# Create training features
+X_train = [
+    sentence_features(sentence)
+    for sentence in training_sentences
+]
+
+y_train = training_labels
+
+# Create CRF model
+crf = sklearn_crfsuite.CRF(
+    algorithm='lbfgs',
+    max_iterations=100,
+    all_possible_transitions=True
+)
+
+# Train CRF
+crf.fit(X_train, y_train)
+
+# New sentence
+test_sentence = [
+    "Sahil",
+    "ordered",
+    "Laptop",
+    "12345"
+]
+
+# Extract features
+X_test = [
+    sentence_features(test_sentence)
+]
+
+# Predict
+prediction = crf.predict(X_test)[0]
+
+# Display results
+print("Sentence:")
+print(test_sentence)
+
+print("\nPredicted labels:")
+
+for word, label in zip(test_sentence, prediction):
+    print(word, "->", label)
