@@ -1,1 +1,202 @@
+# Q3: Named Entity Recognition Using Conditional Random Field
 
+# Install:
+# pip install sklearn-crfsuite
+
+import re
+import sklearn_crfsuite
+from sklearn_crfsuite import metrics
+
+
+# 1. Feature extraction
+
+def word_features(sentence, i):
+
+    word = sentence[i]
+
+    features = {
+        "word.lower()": word.lower(),
+        "word.isupper()": word.isupper(),
+        "word.istitle()": word.istitle(),
+        "word.isdigit()": word.isdigit(),
+        "word.length": len(word),
+        "word.prefix": word[:2],
+        "word.suffix": word[-2:]
+    }
+
+    # Previous word
+
+    if i > 0:
+        features["previous_word"] = sentence[i - 1].lower()
+    else:
+        features["BOS"] = True
+
+    # Next word
+
+    if i < len(sentence) - 1:
+        features["next_word"] = sentence[i + 1].lower()
+    else:
+        features["EOS"] = True
+
+    # Check whether the word is an Order ID
+
+    if re.match(r"^ORD\d+$", word):
+        features["is_order_id"] = True
+    else:
+        features["is_order_id"] = False
+
+    return features
+
+
+# Create features for a sentence
+
+def sentence_features(sentence):
+
+    return [
+        word_features(sentence, i)
+        for i in range(len(sentence))
+    ]
+
+
+# 2. Prepare sequential training data
+
+sentences = [
+
+    [
+        "John",
+        "bought",
+        "a",
+        "Laptop",
+        "with",
+        "Order",
+        "ORD12345"
+    ],
+
+    [
+        "Sarah",
+        "has",
+        "a",
+        "Phone",
+        "and",
+        "Order",
+        "ORD67890"
+    ],
+
+    [
+        "David",
+        "reported",
+        "a",
+        "Damaged",
+        "Laptop"
+    ]
+]
+
+
+# Labels for training data
+
+labels = [
+
+    [
+        "B-CUSTOMER",
+        "O",
+        "O",
+        "B-PRODUCT",
+        "O",
+        "O",
+        "B-ORDER"
+    ],
+
+    [
+        "B-CUSTOMER",
+        "O",
+        "O",
+        "B-PRODUCT",
+        "O",
+        "O",
+        "B-ORDER"
+    ],
+
+    [
+        "B-CUSTOMER",
+        "O",
+        "O",
+        "B-ISSUE",
+        "B-PRODUCT"
+    ]
+]
+
+
+# 3. Convert sentences into features
+
+X_train = [
+    sentence_features(sentence)
+    for sentence in sentences
+]
+
+y_train = labels
+
+
+# 4. Create CRF model
+
+crf = sklearn_crfsuite.CRF(
+    algorithm="lbfgs",
+    max_iterations=100,
+    all_possible_transitions=True
+)
+
+
+# Train the CRF model
+
+crf.fit(
+    X_train,
+    y_train
+)
+
+
+# 5. Predict entities for a new customer email
+
+new_email = [
+    "Michael",
+    "ordered",
+    "a",
+    "Tablet",
+    "with",
+    "Order",
+    "ORD55555"
+]
+
+
+X_test = [
+    sentence_features(new_email)
+]
+
+
+prediction = crf.predict(X_test)[0]
+
+
+# Display prediction
+
+print("Named Entity Recognition Result:")
+print()
+
+for word, label in zip(new_email, prediction):
+
+    print(
+        f"{word:12} -> {label}"
+    )
+
+
+# 6. Evaluate the model
+
+y_pred = crf.predict(X_train)
+
+print()
+print("Model Evaluation:")
+print()
+
+print(
+    metrics.flat_classification_report(
+        y_train,
+        y_pred
+    )
+)
