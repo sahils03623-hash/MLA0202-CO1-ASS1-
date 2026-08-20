@@ -1,1 +1,171 @@
+# Q2: Predictive Machine Maintenance Using Hidden Markov Model
 
+import numpy as np
+
+
+# 1. Define hidden states
+
+states = [
+    "Healthy",
+    "Warning",
+    "Failure"
+]
+
+
+# 2. Define observations
+#
+# 0 = Normal
+# 1 = Abnormal
+# 2 = Critical
+
+observations = [0, 0, 1, 1, 2, 2]
+
+observation_names = [
+    "Normal",
+    "Abnormal",
+    "Critical"
+]
+
+
+# 3. Initial state probabilities
+#
+# Healthy = 0
+# Warning = 1
+# Failure = 2
+
+initial_probabilities = np.array([
+    0.70,
+    0.25,
+    0.05
+])
+
+
+# 4. Transition probabilities
+#
+#             Healthy  Warning  Failure
+
+transition_probabilities = np.array([
+    [0.80,     0.18,    0.02],   # Healthy
+    [0.20,     0.60,    0.20],   # Warning
+    [0.05,     0.20,    0.75]    # Failure
+])
+
+
+# 5. Emission probabilities
+#
+#             Normal  Abnormal  Critical
+
+emission_probabilities = np.array([
+    [0.85,    0.14,     0.01],   # Healthy
+    [0.25,    0.60,     0.15],   # Warning
+    [0.05,    0.25,     0.70]    # Failure
+])
+
+
+# 6. Viterbi Algorithm
+
+number_of_states = len(states)
+number_of_observations = len(observations)
+
+probability = np.zeros(
+    (number_of_observations, number_of_states)
+)
+
+previous_state = np.zeros(
+    (number_of_observations, number_of_states),
+    dtype=int
+)
+
+
+# Initial probabilities
+
+probability[0] = (
+    initial_probabilities *
+    emission_probabilities[:, observations[0]]
+)
+
+
+# Calculate probabilities for remaining observations
+
+for t in range(1, number_of_observations):
+
+    for current_state in range(number_of_states):
+
+        values = (
+            probability[t - 1]
+            * transition_probabilities[:, current_state]
+            * emission_probabilities[
+                current_state,
+                observations[t]
+            ]
+        )
+
+        previous_state[t, current_state] = np.argmax(values)
+
+        probability[t, current_state] = np.max(values)
+
+
+# Find final state
+
+hidden_states = np.zeros(
+    number_of_observations,
+    dtype=int
+)
+
+hidden_states[-1] = np.argmax(
+    probability[-1]
+)
+
+
+# Backtrack to find the complete sequence
+
+for t in range(
+    number_of_observations - 2,
+    -1,
+    -1
+):
+
+    hidden_states[t] = previous_state[
+        t + 1,
+        hidden_states[t + 1]
+    ]
+
+
+# 7. Display results
+
+print("Predictive Machine Maintenance Using HMM")
+print()
+
+print("Sensor Observations and Predicted Machine States:")
+print()
+
+for i in range(number_of_observations):
+
+    print(
+        "Observation",
+        i + 1,
+        ":",
+        observation_names[observations[i]],
+        "->",
+        states[hidden_states[i]]
+    )
+
+
+# Final probability
+
+final_probability = probability[
+    -1,
+    hidden_states[-1]
+]
+
+print()
+print("Final Probability:", final_probability)
+
+print()
+print("Predicted Hidden State Sequence:")
+
+for state in hidden_states:
+
+    print(states[state], end=" -> ")
+
+print("End")
