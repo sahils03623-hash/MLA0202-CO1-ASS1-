@@ -1,1 +1,46 @@
+import pandas as pd
 
+data = {
+    "Parameter": [
+        "State Representation",
+        "Observation Modeling",
+        "Learning Approach",
+        "Prediction Accuracy",
+        "Contextual Features",
+        "Computational Efficiency",
+        "Scalability"
+    ],
+
+    "Hidden Markov Model": [
+        "Hidden states",
+        "Emission probabilities",
+        "Transition and emission probabilities",
+        "Good for simple sequences",
+        "Limited context",
+        "Generally efficient",
+        "Suitable for smaller problems"
+    ],
+
+    "Conditional Random Field": [
+        "Output labels",
+        "Conditional probability",
+        "Feature weights",
+        "Better for complex sequences",
+        "Uses multiple contextual features",
+        "Training can be expensive",
+        "Suitable for complex applications"
+    ]
+}
+
+df = pd.DataFrame(data)
+
+print("QUESTION 2")
+print("HMM vs Conditional Random Field")
+print()
+print(df.to_string(index=False))
+
+print("\nConclusion:")
+print("Conditional Random Field (CRF) is more suitable for")
+print("autonomous vehicle activity recognition.")
+print("It can use multiple contextual sensor features")
+print("for accurate sequence labeling.")
