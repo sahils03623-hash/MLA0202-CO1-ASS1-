@@ -1,1 +1,45 @@
+import pandas as pd
 
+data = {
+    "Parameter": [
+        "Graph Representation",
+        "Dependency Modeling",
+        "Inference Techniques",
+        "Learning Algorithms",
+        "Generalization Capability",
+        "Computational Requirements",
+        "Financial Risk Prediction"
+    ],
+
+    "Bayesian Network": [
+        "Directed Acyclic Graph",
+        "Directional dependencies",
+        "Bayesian inference",
+        "Maximum likelihood and Bayesian learning",
+        "Good for structured relationships",
+        "Can be expensive for complex networks",
+        "Highly suitable for risk prediction"
+    ],
+
+    "Markov Random Field": [
+        "Undirected Graph",
+        "Symmetric dependencies",
+        "Belief propagation and sampling",
+        "Likelihood-based learning",
+        "Useful for interconnected variables",
+        "Inference can be computationally expensive",
+        "Useful for mutual dependencies"
+    ]
+}
+
+df = pd.DataFrame(data)
+
+print("QUESTION 3")
+print("Bayesian Network vs Markov Random Field")
+print()
+print(df.to_string(index=False))
+
+print("\nConclusion:")
+print("Bayesian Network is more effective for financial risk prediction.")
+print("It provides interpretable relationships between financial factors,")
+print("transactions, historical records and risk outcomes.")
