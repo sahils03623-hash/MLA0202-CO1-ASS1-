@@ -1,1 +1,40 @@
+import pandas as pd
 
+data = {
+    "Parameter": [
+        "Graph Structure",
+        "Conditional Independence",
+        "Inference",
+        "Uncertainty",
+        "Complexity",
+        "Applicability"
+    ],
+    "Bayesian Network": [
+        "Directed Acyclic Graph",
+        "Conditional dependencies",
+        "Bayes theorem",
+        "Conditional probabilities",
+        "Can be expensive",
+        "Disease diagnosis"
+    ],
+    "Markov Random Field": [
+        "Undirected Graph",
+        "Neighborhood dependencies",
+        "Potential functions",
+        "Joint probability",
+        "Computationally expensive",
+        "Mutual relationships"
+    ]
+}
+
+df = pd.DataFrame(data)
+
+print("QUESTION 1")
+print("Bayesian Network vs Markov Random Field")
+print()
+print(df.to_string(index=False))
+
+print("\nConclusion:")
+print("Bayesian Network is more suitable for healthcare diagnosis.")
+print("It represents relationships between diseases, symptoms,")
+print("and medical history in an interpretable way.")
