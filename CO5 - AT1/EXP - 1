@@ -1,1 +1,232 @@
+import random
 
+# ---------------------------------------------------------
+# Q1: REINFORCEMENT LEARNING - WAREHOUSE ROBOT NAVIGATION
+# Method: Value Iteration + Epsilon-Greedy Exploration
+# ---------------------------------------------------------
+
+grid = [
+    ['S', '.', '.', '#', '.'],
+    ['.', '#', '.', '#', '.'],
+    ['.', '.', '.', '.', '.'],
+    ['#', '#', '.', '#', '.'],
+    ['.', '.', '.', '.', 'G']
+]
+
+start = (0, 0)
+goal = (4, 4)
+
+actions = {
+    "Up": (-1, 0),
+    "Down": (1, 0),
+    "Left": (0, -1),
+    "Right": (0, 1)
+}
+
+MAX_MOVES = 25
+BATTERY = 30
+GAMMA = 0.9
+
+# Stochastic environment
+INTENDED_PROBABILITY = 0.8
+
+
+def valid_position(position):
+    r, c = position
+
+    return (
+        0 <= r < len(grid)
+        and 0 <= c < len(grid[0])
+        and grid[r][c] != '#'
+    )
+
+
+def get_next_position(position, action):
+    r, c = position
+    dr, dc = actions[action]
+
+    next_position = (r + dr, c + dc)
+
+    if valid_position(next_position):
+        return next_position
+
+    return position
+
+
+def get_reward(position, action):
+    next_position = get_next_position(position, action)
+
+    # Reaching destination
+    if next_position == goal:
+        return 100
+
+    # Obstacle or invalid movement
+    if next_position == position:
+        return -10
+
+    # Every movement consumes one battery
+    return -1
+
+
+# ---------------------------------------------------------
+# VALUE ITERATION
+# ---------------------------------------------------------
+
+states = []
+
+for r in range(len(grid)):
+    for c in range(len(grid[0])):
+        if valid_position((r, c)):
+            states.append((r, c))
+
+
+V = {state: 0 for state in states}
+
+for iteration in range(100):
+
+    new_V = V.copy()
+
+    for state in states:
+
+        if state == goal:
+            continue
+
+        action_values = []
+
+        for action in actions:
+
+            # Intended movement
+            intended_next = get_next_position(state, action)
+
+            intended_value = (
+                get_reward(state, action)
+                + GAMMA * V[intended_next]
+            )
+
+            # Other possible movements
+            other_actions = [
+                a for a in actions if a != action
+            ]
+
+            random_value = 0
+
+            for other_action in other_actions:
+
+                random_next = get_next_position(
+                    state,
+                    other_action
+                )
+
+                random_value += (
+                    get_reward(state, other_action)
+                    + GAMMA * V[random_next]
+                )
+
+            random_value /= len(other_actions)
+
+            # Stochastic transition
+            expected_value = (
+                INTENDED_PROBABILITY * intended_value
+                + (1 - INTENDED_PROBABILITY) * random_value
+            )
+
+            action_values.append(expected_value)
+
+        new_V[state] = max(action_values)
+
+    V = new_V
+
+
+# ---------------------------------------------------------
+# EXTRACT OPTIMAL POLICY
+# ---------------------------------------------------------
+
+policy = {}
+
+for state in states:
+
+    if state == goal:
+        policy[state] = "Goal"
+        continue
+
+    best_action = None
+    best_value = float("-inf")
+
+    for action in actions:
+
+        next_position = get_next_position(
+            state,
+            action
+        )
+
+        value = (
+            get_reward(state, action)
+            + GAMMA * V[next_position]
+        )
+
+        if value > best_value:
+            best_value = value
+            best_action = action
+
+    policy[state] = best_action
+
+
+# ---------------------------------------------------------
+# EPSILON-GREEDY EXPLORATION
+# ---------------------------------------------------------
+
+def choose_action(state, epsilon=0.1):
+
+    # Exploration
+    if random.random() < epsilon:
+        return random.choice(list(actions.keys()))
+
+    # Exploitation
+    return policy[state]
+
+
+# ---------------------------------------------------------
+# DISPLAY POLICY
+# ---------------------------------------------------------
+
+print("OPTIMAL ROBOT POLICY")
+print("--------------------")
+
+for state, action in policy.items():
+    print(state, "->", action)
+
+
+# ---------------------------------------------------------
+# SIMULATE ROBOT
+# ---------------------------------------------------------
+
+position = start
+battery = BATTERY
+moves = 0
+
+print("\nROBOT SIMULATION")
+print("----------------")
+
+while position != goal and moves < MAX_MOVES and battery > 0:
+
+    action = choose_action(position, epsilon=0.1)
+
+    position = get_next_position(position, action)
+
+    moves += 1
+    battery -= 1
+
+    print(
+        "Move:", moves,
+        "| Action:", action,
+        "| Position:", position,
+        "| Battery:", battery
+    )
+
+if position == goal:
+    print("\nDestination reached!")
+else:
+    print("\nDestination not reached within constraints.")
+
+print("Total moves:", moves)
+print("Remaining battery:", battery)
