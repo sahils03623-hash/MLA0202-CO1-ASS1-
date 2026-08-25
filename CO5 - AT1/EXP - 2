@@ -1,1 +1,103 @@
+import random
+import math
 
+# ---------------------------------------------------------
+# Q2: MULTI-ARMED BANDIT - ONLINE ADVERTISEMENT SELECTION
+# Method: UCB (Upper Confidence Bound)
+# ---------------------------------------------------------
+
+NUMBER_OF_ADS = 5
+TOTAL_INTERACTIONS = 10000
+
+# Actual click probabilities
+# These are unknown to the algorithm.
+true_click_probabilities = [
+    0.05,
+    0.08,
+    0.12,
+    0.10,
+    0.15
+]
+
+# Number of times each advertisement was selected
+counts = [0] * NUMBER_OF_ADS
+
+# Total rewards obtained by each advertisement
+rewards = [0] * NUMBER_OF_ADS
+
+total_reward = 0
+
+
+# ---------------------------------------------------------
+# UCB AD SELECTION
+# ---------------------------------------------------------
+
+def select_ad(t):
+
+    # First explore every advertisement
+    for ad in range(NUMBER_OF_ADS):
+
+        if counts[ad] == 0:
+            return ad
+
+    ucb_values = []
+
+    for ad in range(NUMBER_OF_ADS):
+
+        average_reward = rewards[ad] / counts[ad]
+
+        confidence = math.sqrt(
+            (2 * math.log(t)) / counts[ad]
+        )
+
+        ucb = average_reward + confidence
+
+        ucb_values.append(ucb)
+
+    return ucb_values.index(max(ucb_values))
+
+
+# ---------------------------------------------------------
+# RUN 10,000 INTERACTIONS
+# ---------------------------------------------------------
+
+for t in range(1, TOTAL_INTERACTIONS + 1):
+
+    ad = select_ad(t)
+
+    # Simulate whether visitor clicks
+    if random.random() < true_click_probabilities[ad]:
+        reward = 1
+    else:
+        reward = 0
+
+    counts[ad] += 1
+    rewards[ad] += reward
+
+    total_reward += reward
+
+
+# ---------------------------------------------------------
+# RESULTS
+# ---------------------------------------------------------
+
+print("ADVERTISEMENT RESULTS")
+print("----------------------")
+
+for ad in range(NUMBER_OF_ADS):
+
+    ctr = rewards[ad] / counts[ad]
+
+    print(
+        "Advertisement", ad + 1,
+        "| Selected:", counts[ad],
+        "| Clicks:", rewards[ad],
+        "| Estimated CTR:", round(ctr, 4)
+    )
+
+
+best_ad = rewards.index(max(rewards)) + 1
+
+print("\nTotal interactions:", TOTAL_INTERACTIONS)
+print("Total clicks:", total_reward)
+print("Best advertisement:", best_ad)
