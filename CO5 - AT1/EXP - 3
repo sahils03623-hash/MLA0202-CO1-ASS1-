@@ -1,1 +1,202 @@
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# ---------------------------------------------------------
+# Q3: STRATIFIED RANDOM SAMPLING
+# ---------------------------------------------------------
+
+np.random.seed(42)
+
+TOTAL_RECORDS = 1_000_000
+SAMPLE_SIZE = 100_000
+
+# ---------------------------------------------------------
+# CREATE HEALTHCARE DATA
+# ---------------------------------------------------------
+
+data = pd.DataFrame({
+    "age": np.random.randint(18, 80, TOTAL_RECORDS),
+
+    "gender": np.random.choice(
+        [0, 1],
+        TOTAL_RECORDS
+    ),
+
+    "blood_pressure": np.random.randint(
+        90, 180, TOTAL_RECORDS
+    ),
+
+    "cholesterol": np.random.randint(
+        120, 300, TOTAL_RECORDS
+    )
+})
+
+# ---------------------------------------------------------
+# CREATE MEANINGFUL DISEASE RELATIONSHIP
+# ---------------------------------------------------------
+
+risk_score = (
+    (data["age"] > 50).astype(int)
+    + (data["blood_pressure"] > 140).astype(int)
+    + (data["cholesterol"] > 220).astype(int)
+)
+
+# Disease is based on risk factors
+data["disease"] = (risk_score >= 2).astype(int)
+
+# ---------------------------------------------------------
+# CREATE AGE GROUP
+# ---------------------------------------------------------
+
+data["age_group"] = pd.cut(
+    data["age"],
+    bins=[17, 30, 45, 60, 80],
+    labels=[
+        "18-30",
+        "31-45",
+        "46-60",
+        "61-80"
+    ]
+)
+
+# ---------------------------------------------------------
+# CREATE STRATA
+# ---------------------------------------------------------
+
+data["stratum"] = (
+    data["age_group"].astype(str)
+    + "_"
+    + data["gender"].astype(str)
+    + "_"
+    + data["disease"].astype(str)
+)
+
+# ---------------------------------------------------------
+# STRATIFIED SAMPLING
+# ---------------------------------------------------------
+
+sample, remaining = train_test_split(
+    data,
+    train_size=SAMPLE_SIZE,
+    stratify=data["stratum"],
+    random_state=42
+)
+
+print("Original dataset size:", len(data))
+print("Sample dataset size:", len(sample))
+
+# ---------------------------------------------------------
+# CHECK REPRESENTATION
+# ---------------------------------------------------------
+
+print("\nOriginal disease distribution:")
+print(
+    data["disease"].value_counts(normalize=True)
+)
+
+print("\nSample disease distribution:")
+print(
+    sample["disease"].value_counts(normalize=True)
+)
+
+# ---------------------------------------------------------
+# MACHINE LEARNING DATA
+# ---------------------------------------------------------
+
+features = [
+    "age",
+    "gender",
+    "blood_pressure",
+    "cholesterol"
+]
+
+X = sample[features]
+y = sample["disease"]
+
+# ---------------------------------------------------------
+# TRAIN / TEST SPLIT
+# ---------------------------------------------------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    stratify=y,
+    random_state=42
+)
+
+# ---------------------------------------------------------
+# TRAIN MODEL
+# ---------------------------------------------------------
+
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=5,
+    random_state=42,
+    n_jobs=-1
+)
+
+model.fit(X_train, y_train)
+
+# ---------------------------------------------------------
+# PREDICTION
+# ---------------------------------------------------------
+
+predictions = model.predict(X_test)
+
+# ---------------------------------------------------------
+# ACCURACY
+# ---------------------------------------------------------
+
+accuracy = accuracy_score(
+    y_test,
+    predictions
+)
+
+print("\nModel Accuracy:",
+      round(accuracy * 100, 2), "%")
+
+print("Required Accuracy: > 95%")
+
+if accuracy > 0.95:
+    print("Accuracy requirement satisfied.")
+else:
+    print("Accuracy requirement not satisfied.")
+
+# ---------------------------------------------------------
+# CONCEPTS
+# ---------------------------------------------------------
+
+print("\nOccam's Learning Principle:")
+print(
+    "Prefer a simpler model when similar accuracy "
+    "can be achieved."
+)
+
+print("\nSample Complexity:")
+print(
+    "Larger model complexity generally requires "
+    "more training samples for good generalization."
+)
+
+print("\nVC Dimension:")
+print(
+    "Higher VC dimension means a more complex "
+    "hypothesis class and usually requires more data."
+)
+
+print("\nConfidence Requirement: 95%")
+
+print("\nFINAL SAMPLING METHOD:")
+print("STRATIFIED RANDOM SAMPLING")
+
+print(
+    "Reason: It preserves representation of important "
+    "patient categories while reducing computational cost."
+)
+
 
