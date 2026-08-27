@@ -1,1 +1,126 @@
+# ---------------------------------------------------------
+# Question 3: Value Iteration for Robot Path Planning
+# ---------------------------------------------------------
 
+# Algorithm:
+# 1. Initialize the value function of all states to 0.
+# 2. Repeat until the values converge:
+#       a. For every state:
+#           i. Calculate the value of every possible action.
+#          ii. Use the Bellman optimality equation:
+#              V(s) = max [R(s,a) + gamma * V(s')]
+#         iii. Store the maximum action value.
+#       b. Calculate the change in values.
+#       c. Stop when the change is smaller than the threshold.
+# 3. For every state, select the action having the highest value.
+# 4. Output the optimal value function and policy.
+
+
+# States
+states = ["A", "B", "C", "Goal"]
+
+# Possible actions
+actions = ["Left", "Right"]
+
+# State transitions
+transitions = {
+    ("A", "Right"): "B",
+    ("B", "Left"): "A",
+    ("B", "Right"): "C",
+    ("C", "Left"): "B",
+    ("C", "Right"): "Goal"
+}
+
+# Rewards
+rewards = {
+    ("A", "Right"): 0,
+    ("B", "Left"): 0,
+    ("B", "Right"): 0,
+    ("C", "Left"): 0,
+    ("C", "Right"): 10
+}
+
+# Discount factor
+gamma = 0.9
+
+# Convergence threshold
+threshold = 0.001
+
+# Initialize value function
+V = {state: 0 for state in states}
+
+
+# Value Iteration
+while True:
+
+    new_V = V.copy()
+
+    # Maximum change in value
+    delta = 0
+
+    for state in states:
+
+        action_values = []
+
+        for action in actions:
+
+            if (state, action) in transitions:
+
+                next_state = transitions[(state, action)]
+
+                value = (
+                    rewards[(state, action)]
+                    + gamma * V[next_state]
+                )
+
+                action_values.append(value)
+
+        # Update state value
+        if action_values:
+            new_V[state] = max(action_values)
+
+            delta = max(
+                delta,
+                abs(new_V[state] - V[state])
+            )
+
+    V = new_V
+
+    # Check convergence
+    if delta < threshold:
+        break
+
+
+# Find optimal policy
+policy = {}
+
+for state in states:
+
+    best_action = None
+    best_value = float("-inf")
+
+    for action in actions:
+
+        if (state, action) in transitions:
+
+            next_state = transitions[(state, action)]
+
+            value = (
+                rewards[(state, action)]
+                + gamma * V[next_state]
+            )
+
+            if value > best_value:
+                best_value = value
+                best_action = action
+
+    if best_action is not None:
+        policy[state] = best_action
+
+
+# Display results
+print("Optimal Value Function:")
+print(V)
+
+print("\nOptimal Policy:")
+print(policy)
