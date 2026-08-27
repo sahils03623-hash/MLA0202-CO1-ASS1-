@@ -1,1 +1,174 @@
+# ---------------------------------------------------------
+# Question 5: Policy Iteration for Autonomous Drone Navigation
+# ---------------------------------------------------------
 
+# Algorithm:
+# 1. Initialize a random policy for every state.
+# 2. Initialize the state-value function.
+# 3. Perform Policy Evaluation:
+#       a. Calculate the value of each state using
+#          the current policy.
+#       b. Repeat until the values converge.
+# 4. Perform Policy Improvement:
+#       a. For every state, calculate the value of
+#          every possible action.
+#       b. Select the action with the highest value.
+#       c. Compare the new action with the old action.
+# 5. If the policy does not change, stop.
+# 6. Otherwise, repeat policy evaluation and improvement.
+# 7. Output the optimal policy and state values.
+
+
+import random
+
+# States
+states = ["A", "B", "C", "Goal"]
+
+# Possible actions
+actions = ["Left", "Right"]
+
+# State transitions
+transitions = {
+    ("A", "Right"): "B",
+    ("B", "Left"): "A",
+    ("B", "Right"): "C",
+    ("C", "Left"): "B",
+    ("C", "Right"): "Goal"
+}
+
+# Rewards
+rewards = {
+    ("A", "Right"): 0,
+    ("B", "Left"): 0,
+    ("B", "Right"): 0,
+    ("C", "Left"): 0,
+    ("C", "Right"): 10
+}
+
+# Discount factor
+gamma = 0.9
+
+# Convergence threshold
+threshold = 0.001
+
+
+# ---------------------------------------------------------
+# Step 1: Initialize random policy
+# ---------------------------------------------------------
+
+policy = {}
+
+for state in states:
+
+    available_actions = []
+
+    for action in actions:
+
+        if (state, action) in transitions:
+            available_actions.append(action)
+
+    if available_actions:
+        policy[state] = random.choice(
+            available_actions
+        )
+
+
+# ---------------------------------------------------------
+# Policy Iteration
+# ---------------------------------------------------------
+
+while True:
+
+    # -----------------------------------------------------
+    # Step 2: Policy Evaluation
+    # -----------------------------------------------------
+
+    V = {state: 0 for state in states}
+
+    while True:
+
+        delta = 0
+
+        for state in states:
+
+            if state not in policy:
+                continue
+
+            action = policy[state]
+
+            next_state = transitions[
+                (state, action)
+            ]
+
+            new_value = (
+                rewards[(state, action)]
+                + gamma * V[next_state]
+            )
+
+            delta = max(
+                delta,
+                abs(new_value - V[state])
+            )
+
+            V[state] = new_value
+
+        # Check convergence
+        if delta < threshold:
+            break
+
+
+    # -----------------------------------------------------
+    # Step 3: Policy Improvement
+    # -----------------------------------------------------
+
+    policy_stable = True
+
+    for state in states:
+
+        if state not in policy:
+            continue
+
+        old_action = policy[state]
+
+        best_action = old_action
+        best_value = float("-inf")
+
+        for action in actions:
+
+            if (state, action) in transitions:
+
+                next_state = transitions[
+                    (state, action)
+                ]
+
+                value = (
+                    rewards[(state, action)]
+                    + gamma * V[next_state]
+                )
+
+                if value > best_value:
+                    best_value = value
+                    best_action = action
+
+        # Update policy
+        policy[state] = best_action
+
+        # Check whether policy changed
+        if old_action != best_action:
+            policy_stable = False
+
+
+    # Stop if policy is stable
+    if policy_stable:
+        break
+
+
+# ---------------------------------------------------------
+# Step 4: Display the optimal policy and values
+# ---------------------------------------------------------
+
+print("Optimal Policy:")
+print(policy)
+
+print("\nState Values:")
+print(V)
