@@ -1,1 +1,49 @@
+# ---------------------------------------------------------
+# Question 1: Monte Carlo Sampling for Probability Estimation
+# ---------------------------------------------------------
 
+# Algorithm:
+# 1. Set the number of simulation trials.
+# 2. Initialize the count of on-time deliveries to 0.
+# 3. For each trial:
+#       a. Generate a random traffic condition.
+#       b. Assign an on-time delivery probability based on traffic.
+#       c. Simulate whether the delivery is on time.
+#       d. If the delivery is on time, increase the count.
+# 4. Calculate the estimated probability:
+#       Probability = On-time deliveries / Total trials
+# 5. Display the estimated probability.
+
+
+import random
+
+# Number of simulation trials
+num_trials = 10000
+
+# Count of on-time deliveries
+on_time_deliveries = 0
+
+# Perform simulations
+for i in range(num_trials):
+
+    # Generate random traffic condition
+    traffic = random.choice(["Low", "Medium", "High"])
+
+    # Probability of on-time delivery
+    if traffic == "Low":
+        probability = 0.90
+    elif traffic == "Medium":
+        probability = 0.70
+    else:
+        probability = 0.40
+
+    # Simulate delivery
+    if random.random() < probability:
+        on_time_deliveries += 1
+
+# Estimate probability
+estimated_probability = on_time_deliveries / num_trials
+
+# Display result
+print("Estimated probability of on-time delivery:",
+      estimated_probability)
