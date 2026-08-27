@@ -1,1 +1,74 @@
+# ---------------------------------------------------------
+# Question 2: ε-Greedy Algorithm for K-Armed Bandit
+# ---------------------------------------------------------
 
+# Algorithm:
+# 1. Set the number of movies and number of interactions.
+# 2. Initialize reward estimates for all movies to 0.
+# 3. Initialize the number of times each movie is selected to 0.
+# 4. For every user interaction:
+#       a. Generate a random number.
+#       b. If the number is less than epsilon,
+#          explore by selecting a random movie.
+#       c. Otherwise, exploit by selecting the movie
+#          with the highest estimated reward.
+#       d. Obtain the reward from the selected movie.
+#       e. Update the number of selections.
+#       f. Update the estimated reward.
+# 5. Identify the movie with the highest expected reward.
+# 6. Display the best movie and its expected reward.
+
+
+import random
+
+# Number of movies
+num_movies = 5
+
+# Number of user interactions
+num_interactions = 1000
+
+# Exploration probability
+epsilon = 0.1
+
+# Initialize reward estimates
+reward_estimates = [0] * num_movies
+
+# Initialize selection counts
+reward_counts = [0] * num_movies
+
+
+# Perform user interactions
+for i in range(num_interactions):
+
+    # Exploration
+    if random.random() < epsilon:
+        movie = random.randint(0, num_movies - 1)
+
+    # Exploitation
+    else:
+        movie = reward_estimates.index(
+            max(reward_estimates)
+        )
+
+    # Simulate user reward
+    reward = random.randint(0, 10)
+
+    # Update selection count
+    reward_counts[movie] += 1
+
+    # Update reward estimate
+    reward_estimates[movie] += (
+        reward - reward_estimates[movie]
+    ) / reward_counts[movie]
+
+
+# Find movie with highest expected reward
+best_movie = reward_estimates.index(
+    max(reward_estimates)
+)
+
+# Display results
+print("Reward Estimates:", reward_estimates)
+print("Best Movie:", best_movie + 1)
+print("Highest Expected Reward:",
+      reward_estimates[best_movie])
