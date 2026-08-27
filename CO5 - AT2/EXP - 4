@@ -1,1 +1,82 @@
+# ---------------------------------------------------------
+# Question 4: Temporal Difference (TD) Learning
+# ---------------------------------------------------------
 
+# Algorithm:
+# 1. Initialize state-value estimates to 0.
+# 2. Set the learning rate alpha and discount factor gamma.
+# 3. For every game episode:
+#       a. Observe the current state.
+#       b. Observe the reward.
+#       c. Observe the next state.
+#       d. Calculate the TD target:
+#              TD Target = Reward + gamma * V(next_state)
+#       e. Calculate the TD error:
+#              TD Error = TD Target - V(current_state)
+#       f. Update the current state value:
+#              V(current_state) =
+#              V(current_state) + alpha * TD Error
+# 4. Continue until all episodes are completed.
+# 5. Display the final state-value estimates.
+
+
+# Learning rate
+alpha = 0.1
+
+# Discount factor
+gamma = 0.9
+
+# Game episodes
+episodes = [
+    [
+        ("Start", 0),
+        ("Middle", 1),
+        ("NearGoal", 5),
+        ("Goal", 0)
+    ],
+    [
+        ("Start", 0),
+        ("Middle", 1),
+        ("NearGoal", 5),
+        ("Goal", 0)
+    ]
+]
+
+# Initialize state values
+V = {}
+
+
+# Process every episode
+for episode in episodes:
+
+    # Process every state transition
+    for i in range(len(episode) - 1):
+
+        # Current state and reward
+        current_state, reward = episode[i]
+
+        # Next state
+        next_state, _ = episode[i + 1]
+
+        # Initialize states if not present
+        if current_state not in V:
+            V[current_state] = 0
+
+        if next_state not in V:
+            V[next_state] = 0
+
+        # Calculate TD target
+        td_target = reward + gamma * V[next_state]
+
+        # Calculate TD error
+        td_error = td_target - V[current_state]
+
+        # Update state value
+        V[current_state] += alpha * td_error
+
+
+# Display final state values
+print("State Value Estimates:")
+
+for state, value in V.items():
+    print(state, ":", value)
